@@ -7,7 +7,7 @@
     ```
 2. Run the test suite:
     ```bash
-    python tests/test_case.py --model_dir "jan-hq/Jan-Llama3-0708" \\
+    python test_case.py --model_dir "jan-hq/Jan-Llama3-0708" \\
                               --num_rows 100 \\ 
     ```
 ## Test Configuration
