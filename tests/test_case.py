@@ -13,9 +13,11 @@ import os
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run inference on a Sound-To-Text Model.")
-    parser.add_argument("--model_dir", type=str, required=True, help="Hugging Face model repository link")
+    parser.add_argument("--model_dir", type=str, required=True, help="Hugging Face model link or local_dir")
+    parser.add_argument("--data_dir", type=str, required=True, help="Hugging Face model repository link or Data path")
+    parser.add_argument("--mode", type=str, default="audio", help="Mode of the model (audio or text)")
     parser.add_argument("--num_rows", type=int, default=5, help="Number of dataset rows to process")
-    parser.add_argument("--output_file", type=str, default="output.csv", help="Output file path")
+    parser.add_argument("--output_file", type=str, default="output/", help="Output file path")
     return parser.parse_args()
 
 class TestModelInference(unittest.TestCase):
@@ -23,7 +25,10 @@ class TestModelInference(unittest.TestCase):
     def setUpClass(cls):
         args = parse_arguments()
         # Global variables
-        cls.save_dir_output = f'{args.output_file}/Jan-Llama3-0708-Result.csv'
+        model_name = args.model_dir.split("/")[-1]
+        cls.save_dir_output = f'{args.output_file}/{model_name}-{args.mode}-Result.csv'
+        if not os.path.exists(args.output_file):
+            os.makedirs(args.output_file)
         cls.sampling_params = SamplingParams(temperature=0.0, max_tokens=1024, skip_special_tokens=False)
         
         # Download model
@@ -33,18 +38,25 @@ class TestModelInference(unittest.TestCase):
             print(f"Found {args.model_dir}. Skipping download.")
         
         # Model loading using vllm
-        cls.tokenizer = AutoTokenizer.from_pretrained("jan-hq/llama-3-sound-init")
-        cls.llm = LLM(args.model_dir, tokenizer="jan-hq/llama-3-sound-init")
+        cls.tokenizer = AutoTokenizer.from_pretrained(args.model_dir)
+        cls.llm = LLM(args.model_dir, tokenizer=args.model_dir)
         
         # Load dataset
-        cls.dataset = load_dataset("jan-hq/instruction-speech-conversation-test", cache_dir="/.cache/")['train']
+        cls.dataset = load_dataset(args.data_dir, cache_dir=".cache/")['train']
         cls.num_rows = min(args.num_rows, len(cls.dataset))
         cls.inference_results = []
-        for i in range(cls.num_rows):
-            cls.inference_results.append(cls.vllm_inference(i))
-        print(cls.inference_results[0])
+        if args.mode == "audio":
+            for i in range(cls.num_rows):
+                cls.inference_results.append(cls.vllm_sound_inference(i))
+        elif args.mode == "text":
+            for i in range(cls.num_rows):
+                cls.inference_results.append(cls.vllm_qna_inference(i))
+        # print(cls.inference_results[0])
+        df_results = pd.DataFrame(cls.inference_results, columns=['input', 'output', 'expected_output', 'output_token_ids'])
+        df_results.to_csv(cls.save_dir_output, index=False, encoding='utf-8')
+        print(f"Successfully saved in {cls.save_dir_output}")
     @classmethod
-    def vllm_inference(self, sample_id):
+    def vllm_sound_inference(self, sample_id):
         sound_messages = self.dataset[sample_id]['sound_convo'][0]
         expected_output_messages = self.dataset[sample_id]['sound_convo'][1]
         sound_input_str = self.tokenizer.apply_chat_template([sound_messages], tokenize=False, add_generation_prompt=True)
@@ -56,7 +68,23 @@ class TestModelInference(unittest.TestCase):
         output_token_ids = outputs[0].outputs[0].token_ids
         
         return text_input_str, output_based_on_sound, expected_output_str, output_token_ids
-
+    @classmethod
+    def vllm_qna_inference(self, sample_id):
+        text_input_str = self.dataset[sample_id]['prompt']
+        expected_answer_str = self.dataset[sample_id]['answer']
+        question_str = self.tokenizer.apply_chat_template([text_input_str], tokenize=False, add_generation_prompt=True)
+        
+        outputs = self.llm.generate(question_str, self.sampling_params)
+        output_based_on_question = outputs[0].outputs[0].text
+        output_token_ids = outputs[0].outputs[0].token_ids
+        
+        return text_input_str, output_based_on_question, expected_answer_str, output_token_ids
+    # @classmethod
+    # def hf_inference(self, sample_id):
+    #     question = self.dataset[sample_id]['question']
+        
+        
+    #     return input_str, output_based_on_input, expected_output_str, output_token_ids
     def test_model_output(self):
         for text_input_str, output_based_on_sound, expected_output_str, output_token_ids in self.inference_results:
             # Test 1: Check if output is not empty
