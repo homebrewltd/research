@@ -25,7 +25,10 @@ class TestModelInference(unittest.TestCase):
     def setUpClass(cls):
         args = parse_arguments()
         # Global variables
-        cls.save_dir_output = f'{args.output_file}/Jan-Llama3-0708-Result.csv'
+        model_name = args.model_dir.split("/")[-1]
+        cls.save_dir_output = f'{args.output_file}/{model_name}-{args.mode}-Result.csv'
+        if not os.path.exists(args.output_file):
+            os.makedirs(args.output_file)
         cls.sampling_params = SamplingParams(temperature=0.0, max_tokens=1024, skip_special_tokens=False)
         
         # Download model
@@ -49,6 +52,9 @@ class TestModelInference(unittest.TestCase):
             for i in range(cls.num_rows):
                 cls.inference_results.append(cls.vllm_qna_inference(i))
         # print(cls.inference_results[0])
+        df_results = pd.DataFrame(cls.inference_results, columns=['input', 'output', 'expected_output', 'output_token_ids'])
+        df_results.to_csv(cls.save_dir_output, index=False, encoding='utf-8')
+        print(f"Successfully saved in {cls.save_dir_output}")
     @classmethod
     def vllm_sound_inference(self, sample_id):
         sound_messages = self.dataset[sample_id]['sound_convo'][0]
