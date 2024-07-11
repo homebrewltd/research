@@ -24,7 +24,7 @@ class TestModelInference(unittest.TestCase):
         args = parse_arguments()
         # Global variables
         cls.save_dir_output = f'{args.output_file}/Jan-Llama3-0708-Result.csv'
-        cls.sampling_params = SamplingParams(temperature=0.0, max_tokens=200)
+        cls.sampling_params = SamplingParams(temperature=0.0, max_tokens=200, skip_special_tokens=False)
         
         # Download model
         if not os.path.exists(args.model_dir):
@@ -80,6 +80,7 @@ class TestModelInference(unittest.TestCase):
             if token:
                 encoded = self.tokenizer.encode(token)
                 self.assertNotEqual(encoded[0], -100)  # Special token should not be ignored
+                self.assertNotEqual(encoded[0], encoded[2])
 
     # def test_model_consistency(self):
     #     # Test 6: Check if model gives consistent outputs for the same input
