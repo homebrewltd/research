@@ -8,7 +8,8 @@
 2. Run the test suite:
     ```bash
     python test_case.py --model_dir "jan-hq/Jan-Llama3-0708" \\
-                              --num_rows 100 \\ 
+                        --mode "audio" \\
+                        --num_rows 100 \\ 
     ```
 ## Test Configuration
 
@@ -21,11 +22,10 @@
 
 1. Output validation (non-empty, correct type)
 2. Token ID validation
-3. Output length checks
-4. Input-output relevance using BLEU
-5. Special token handling
-6. Numerical stability (NaN checks)
-7. Check if EOS token are unique and at the end of the generated ids
+3. Input-output relevance using BLEU
+4. Special token handling
+5. Numerical stability (NaN checks)
+6. Check if EOS token are unique and at the end of the generated ids
 
 ## Continuous Integration
 
