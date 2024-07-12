@@ -12,8 +12,8 @@ import os
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run inference on a Sound-To-Text Model.")
-    parser.add_argument("--model_dir", type=str, required=True, help="Hugging Face model link or local_dir")
-    parser.add_argument("--model_save_dir", type=str, required=True, help="Local directory that model is saved")
+    parser.add_argument("--model_dir", type=str, default="jan-hq/Jan-Llama3-0708", help="Hugging Face model link or local_dir")
+    parser.add_argument("--model_save_dir", type=str, required=False, help="Local directory that model is saved")
     parser.add_argument("--data_dir", type=str, required=True, help="Hugging Face model repository link or Data path")
     parser.add_argument("--mode", type=str, default="audio", help="Mode of the model (audio or text)")
     parser.add_argument("--num_rows", type=int, default=5, help="Number of dataset rows to process")
@@ -31,7 +31,7 @@ class TestModelInference(unittest.TestCase):
             os.makedirs(args.output_file)
         cls.sampling_params = SamplingParams(temperature=0.0, max_tokens=1024, skip_special_tokens=False)
         model_dir = ""
-        if os.path.exists(args.model_save_dir):
+        if args.model_save_dir:
             model_dir = args.model_save_dir
         else:
             # Download model
