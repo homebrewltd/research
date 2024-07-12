@@ -1,5 +1,4 @@
 import unittest
-from accelerate.utils import merge_fsdp_weights
 from huggingface_hub import snapshot_download
 from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
@@ -14,6 +13,7 @@ import os
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run inference on a Sound-To-Text Model.")
     parser.add_argument("--model_dir", type=str, required=True, help="Hugging Face model link or local_dir")
+    parser.add_argument("--model_save_dir", type=str, required=True, help="Directory to save the model")
     parser.add_argument("--data_dir", type=str, required=True, help="Hugging Face model repository link or Data path")
     parser.add_argument("--mode", type=str, default="audio", help="Mode of the model (audio or text)")
     parser.add_argument("--num_rows", type=int, default=5, help="Number of dataset rows to process")
@@ -30,16 +30,19 @@ class TestModelInference(unittest.TestCase):
         if not os.path.exists(args.output_file):
             os.makedirs(args.output_file)
         cls.sampling_params = SamplingParams(temperature=0.0, max_tokens=1024, skip_special_tokens=False)
-        
-        # Download model
-        if not os.path.exists(args.model_dir):
-            snapshot_download(args.model_dir, local_dir=args.model_dir, max_workers=64)
+        model_dir = ""
+        if os.path.exists(args.model_save_dir):
+            model_dir = args.model_save_dir
         else:
-            print(f"Found {args.model_dir}. Skipping download.")
-        
+            # Download model
+            if not os.path.exists(args.model_dir):
+                snapshot_download(args.model_dir, local_dir=args.model_dir, max_workers=64)
+            else:
+                print(f"Found {args.model_dir}. Skipping download.")
+            model_dir = args.model_dir
         # Model loading using vllm
-        cls.tokenizer = AutoTokenizer.from_pretrained(args.model_dir)
-        cls.llm = LLM(args.model_dir, tokenizer=args.model_dir)
+        cls.tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        cls.llm = LLM(model_dir, tokenizer=model_dir)
         
         # Load dataset
         cls.dataset = load_dataset(args.data_dir, cache_dir=".cache/")['train']
