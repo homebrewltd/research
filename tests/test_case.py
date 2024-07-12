@@ -13,7 +13,7 @@ import os
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Run inference on a Sound-To-Text Model.")
     parser.add_argument("--model_dir", type=str, required=True, help="Hugging Face model link or local_dir")
-    parser.add_argument("--model_save_dir", type=str, required=True, help="Directory to save the model")
+    parser.add_argument("--model_save_dir", type=str, required=True, help="Local directory that model is saved")
     parser.add_argument("--data_dir", type=str, required=True, help="Hugging Face model repository link or Data path")
     parser.add_argument("--mode", type=str, default="audio", help="Mode of the model (audio or text)")
     parser.add_argument("--num_rows", type=int, default=5, help="Number of dataset rows to process")
