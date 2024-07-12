@@ -1,5 +1,5 @@
 datasets==2.20.0
-torch=2.2.0
+torch=2.3.0
 transformers
 vllm
 huggingface_hub==0.23.4
