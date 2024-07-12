@@ -1,69 +1,21 @@
-FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04 AS clang18_image
+FROM docker.io/pytorch/pytorch:2.3.0-cuda12.1-cudnn8-runtime
 
-# Install dependencies
-RUN apt-get -qq update; \
-    apt-get install -qqy --no-install-recommends \
-        gnupg2 wget ca-certificates apt-transport-https \
-        autoconf automake cmake dpkg-dev file make patch libc6-dev
-
-# Install LLVM
-#RUN echo "deb https://apt.llvm.org/jammy llvm-toolchain-jammy-18 main" \
-#        > /etc/apt/sources.list.d/llvm.list && \
-#    wget -qO /etc/apt/trusted.gpg.d/llvm.asc \
-#        https://apt.llvm.org/llvm-snapshot.gpg.key && \
-#    apt-get update && \
-#    apt-get install -y -t llvm-toolchain-jammy-18 clang-18 clangd-18 clang-tidy-18 clang-format-18 lld-18 libc++-18-dev libc++abi-18-dev && \
-#    for f in /usr/lib/llvm-18/bin/*; do ln -sf "$f" /usr/bin; done && \
-#    rm -rf /var/lib/apt/lists/*
-
-FROM clang18_image AS base_image
-
-# Add python PPA
-ARG DEBIAN_FRONTEND=noninteractive
-
-RUN apt update && apt install -y software-properties-common \
-  && add-apt-repository ppa:deadsnakes/ppa -y
-
-# Install packages
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
-    python3.11 \
-    #python3-pip \
-    python3.11-dev \
-    zsh \
-    nvtop \
-    btop \
-    tmux \
-    git \
-    curl \
-    ca-certificates \
-    gettext \
+    sudo \
     unzip \
-    fd-find \
-    nodejs \
-    npm \
+    curl \
+    wget \
+    git \
+    git-lfs \
+    jq \
   && rm -rf /var/lib/apt/lists/*
 
-# Set clang as the default compiler
-#RUN ln -sf /usr/bin/clang /usr/bin/cc \
-#  && ln -sf /usr/bin/clang++ /usr/bin/c++ \
-#  && cc --version \
-#  && c++ --version
-
-# Update the alternatives for Python 3.12
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 100
-
-# Fix cuda clang issue
-# Command to append content to the clangd config file
-RUN mkdir -p /root/.config/clangd && \
-    echo "CompileFlags:" >> /root/.config/clangd/config.yaml && \
-    echo "  Add:" >> /root/.config/clangd/config.yaml && \
-    echo "    - --cuda-gpu-arch=sm_89" >> /root/.config/clangd/config.yaml && \
-    echo "  Remove:" >> /root/.config/clangd/config.yaml && \
-    echo "    - --generate-code=arch=*" >> /root/.config/clangd/config.yaml && \
-    echo "    - -forward-unknown-to-host-compiler" >> /root/.config/clangd/config.yaml
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+  unzip awscliv2.zip && \
+  ./aws/install
 
 ENV HOME=/home/runner
 
