@@ -14,6 +14,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Run inference on a Sound-To-Text Model.")
     parser.add_argument("--model_dir", type=str, default="jan-hq/Jan-Llama3-0708", help="Hugging Face model link or local_dir")
     parser.add_argument("--data_dir", type=str, required=True, help="Hugging Face model repository link or Data path")
+    parser.add_argument("--cache_dir", type=str, default=".", help="Absolute path to save the model and dataset")
     parser.add_argument("--mode", type=str, default="audio", help="Mode of the model (audio or text)")
     parser.add_argument("--num_rows", type=int, default=5, help="Number of dataset rows to process")
     parser.add_argument("--output_file", type=str, default="output/", help="Output file path")
@@ -31,15 +32,15 @@ class TestModelInference(unittest.TestCase):
         cls.sampling_params = SamplingParams(temperature=0.0, max_tokens=1024, skip_special_tokens=False)
         # Download model
         if not os.path.exists(args.model_dir):
-            snapshot_download(args.model_dir, local_dir=args.model_dir, max_workers=64)
+            snapshot_download(args.model_dir, local_dir=args.cache_dir, max_workers=64)
         else:
             print(f"Found {args.model_dir}. Skipping download.")
         # Model loading using vllm
-        cls.tokenizer = AutoTokenizer.from_pretrained(args.model_dir)
-        cls.llm = LLM(args.model_dir, tokenizer=args.model_dir)
+        cls.tokenizer = AutoTokenizer.from_pretrained(args.cache_dir)
+        cls.llm = LLM(args.cache_dir, tokenizer=args.cache_dir)
         
         # Load dataset
-        cls.dataset = load_dataset(args.data_dir, cache_dir=".cache/")['train']
+        cls.dataset = load_dataset(args.data_dir, cache_dir=args.cache_dir)['train']
         cls.num_rows = min(args.num_rows, len(cls.dataset))
         cls.inference_results = []
         if args.mode == "audio":
