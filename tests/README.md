@@ -8,8 +8,10 @@
 2. Run the test suite:
     ```bash
     python test_case.py --model_dir "jan-hq/Jan-Llama3-0708" \\
+                        --max_length 1024 \\
+                        --data_dir "jan-hq/instruction-speech-conversation-test" \\
                         --mode "audio" \\
-                        --num_rows 100 \\ 
+                        --num_rows 5 \\ 
     ```
 ## Test Configuration
 

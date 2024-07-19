@@ -1,0 +1,37 @@
+name: Test - Models
+on:
+  workflow_dispatch:
+    inputs:
+      model_id:
+        description: 'Model ID on huggingface, for example: jan-hq/Jan-Llama3-0708'
+        required: true
+        default: jan-hq/Jan-Llama3-0708
+        type: string
+      dataset_id:
+        description: 'Dataset ID on huggingface, for example: jan-hq/instruction-speech-conversation-test'
+        required: true
+        default: jan-hq/instruction-speech-conversation-test
+        type: string
+      extra_args:
+        description: 'Extra arguments for python command, for example:--mode audio --num_rows 5'
+        required: false
+        default: "--mode audio --num_rows 5"
+        type: string
+
+jobs:
+  run-test:
+    runs-on: research
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        working-directory: ./tests
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install -r requirements.txt
+
+      - name: Run tests
+        working-directory: ./tests
+        run: |
+          python3 test_case.py --model_dir ${{ github.event.inputs.model_id }} --data_dir ${{ github.event.inputs.dataset_id }}  ${{ github.event.inputs.extra_args }}
