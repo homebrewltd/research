@@ -42,7 +42,7 @@ class TestModelInference(unittest.TestCase):
             model_dir = args.model_dir
         # Model loading using vllm
         cls.tokenizer = AutoTokenizer.from_pretrained(model_dir)
-        cls.llm = LLM(model_dir, tokenizer=model_dir, gpu_memory_utilization=0.7)
+        cls.llm = LLM(model_dir, tokenizer=model_dir, gpu_memory_utilization=0.3)
         
         # Load dataset
         cls.dataset = load_dataset(args.data_dir, cache_dir=".cache/")['train']
