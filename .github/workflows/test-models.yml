@@ -46,6 +46,7 @@ jobs:
         working-directory: ./lm-evaluation-harness
         run: |
           pip3 install -e .
+          pip3 install lm_eval[vllm]
 
       - name: Run benchmark
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
