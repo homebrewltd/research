@@ -114,8 +114,8 @@ class TestModelInference(unittest.TestCase):
         else:
             print(f"Found {model_save_dir}. Skipping download.")
         # Model loading using vllm
-        cls.tokenizer = AutoTokenizer.from_pretrained(model_save_dir)
-        cls.llm = LLM(model_save_dir, tokenizer=model_save_dir, gpu_memory_utilization=0.6)
+        cls.tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        cls.llm = LLM(model_dir, tokenizer=model_dir, gpu_memory_utilization=0.3)
         
         # Load dataset
         data_save_dir = os.path.join(args.cache_dir, args.data_dir)
@@ -150,7 +150,6 @@ class TestModelInference(unittest.TestCase):
         text_input_str = self.dataset[sample_id]['prompt']
         expected_answer_str = self.dataset[sample_id]['answer']
         question_str = self.tokenizer.apply_chat_template([text_input_str], tokenize=False, add_generation_prompt=True)
-        
         outputs = self.llm.generate(question_str, self.sampling_params)
         output_based_on_question = outputs[0].outputs[0].text
         output_token_ids = outputs[0].outputs[0].token_ids
