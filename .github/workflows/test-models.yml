@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       model_id:
-        description: 'Model ID on huggingface, for example: jan-hq/Jan-Llama3-0708'
+        description: 'Model ID on huggingface, for example: homebrewltd/llama3-s-2024-07-08'
         required: true
-        default: jan-hq/Jan-Llama3-0708
+        default: homebrewltd/llama3-s-2024-07-08
         type: string
       dataset_id:
         description: 'Dataset ID on huggingface, for example: jan-hq/instruction-speech-conversation-test'
@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
 
       - name: Install dependencies
         working-directory: ./tests
