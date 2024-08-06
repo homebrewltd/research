@@ -25,7 +25,7 @@ def model_setup(custom_args):
         print(f"Found {model_save_dir}. Skipping download.")
     
     tokenizer = AutoTokenizer.from_pretrained(model_save_dir)
-    llm = LLM(model_save_dir, tokenizer=model_save_dir, gpu_memory_utilization=0.3)
+    llm = LLM(model_save_dir, tokenizer=model_save_dir, gpu_memory_utilization=-1)
     
     data_save_dir = os.path.join(args.cache_dir, args.data_dir)
     dataset = load_dataset(args.data_dir, split='train')
