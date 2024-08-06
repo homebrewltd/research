@@ -49,6 +49,7 @@ jobs:
         run: |
           pip3 install -e .
           pip3 install lm_eval[vllm]
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Run benchmark
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
