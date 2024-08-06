@@ -45,7 +45,7 @@ jobs:
       - name: Run tests
         working-directory: ./tests
         run: |
-          python3 test_case.py --model_dir ${{ github.event.inputs.model_id }} --data_dir ${{ github.event.inputs.dataset_id }} ${{ github.event.inputs.extra_args }}
+          python3 test_case.py --model_dir ${{ github.event.inputs.model_id || 'jan-hq/Jan-Llama3-0708' }} --data_dir ${{ github.event.inputs.dataset_id || 'jan-hq/instruction-speech-conversation-test' }} ${{ github.event.inputs.extra_args || '--mode audio --num_rows 5' }}
       
       - name: Install benchmark dependencies
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
