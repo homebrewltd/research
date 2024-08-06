@@ -56,8 +56,8 @@ jobs:
 
       - name: Run benchmark
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
-        working-directory: ./lm-evaluation-harness
         run: |
+          cd lm-evaluation-harness
           chmod +x ./run_benchmark.sh
           ./run_benchmark.sh ${{ github.event.inputs.model_id }}
 
