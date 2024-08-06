@@ -45,8 +45,8 @@ jobs:
 
       - name: Install benchmark dependencies
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
-        working-directory: ./lm-evaluation-harness
         run: |
+          cd lm-evaluation-harness
           pip3 install -e .
           pip3 install lm_eval[vllm]
           echo "$HOME/.local/bin" >> $GITHUB_PATH
