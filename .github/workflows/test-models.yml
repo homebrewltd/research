@@ -22,6 +22,11 @@ on:
         required: false
         default: true
         type: boolean
+      run audio_benchmark:
+        description: 'Run audio benchmark test'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   run-test-and-benchmark:
