@@ -1,4 +1,4 @@
-torch==2.3.1
+torch==2.4.0
 datasets==2.20.0
 transformers>=4.43.0
 vllm==0.5.4
