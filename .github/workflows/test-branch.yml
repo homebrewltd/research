@@ -9,7 +9,7 @@ on:
       model_id:
         description: 'Model ID on huggingface, for example: jan-hq/Jan-Llama3-0708'
         required: true
-        default: jan-hq/Jan-Llama3-0708
+        default: homebrewltd/llama3-s-2024-07-08
         type: string
       dataset_id:
         description: 'Dataset ID on huggingface, for example: jan-hq/instruction-speech-conversation-test'
@@ -21,6 +21,16 @@ on:
         required: false
         default: "--mode audio --num_rows 5"
         type: string
+      run_benchmark:
+        description: 'Run benchmark test'
+        required: false
+        default: true
+        type: boolean
+      run audio_benchmark:
+        description: 'Run audio benchmark test'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   run-test:
@@ -28,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
 
       - name: Install dependencies
         working-directory: ./tests
@@ -39,3 +51,25 @@ jobs:
         working-directory: ./tests
         run: |
           python3 test_case.py --model_dir ${{ github.event.inputs.model_id || 'jan-hq/Jan-Llama3-0708' }} --data_dir ${{ github.event.inputs.dataset_id || 'jan-hq/instruction-speech-conversation-test' }} ${{ github.event.inputs.extra_args || '--mode audio --num_rows 5' }}
+      
+      - name: Install benchmark dependencies
+        if: ${{ github.event.inputs.run_benchmark == 'true' }}
+        run: |
+          cd lm-evaluation-harness
+          pip3 install -e .
+          pip3 install lm_eval[vllm]
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run benchmark
+        if: ${{ github.event.inputs.run_benchmark == 'true' }}
+        run: |
+          cd lm-evaluation-harness
+          chmod +x ./run_benchmark.sh
+          ./run_benchmark.sh ${{ github.event.inputs.model_id }}
+
+      - name: Upload benchmark results
+        if: ${{ github.event.inputs.run_benchmark == 'true' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: benchmark-results
+          path: ./lm-evaluation-harness/benchmark_results/*.json

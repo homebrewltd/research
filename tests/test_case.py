@@ -114,8 +114,8 @@ class TestModelInference(unittest.TestCase):
         else:
             print(f"Found {model_save_dir}. Skipping download.")
         # Model loading using vllm
-        cls.tokenizer = AutoTokenizer.from_pretrained(model_dir)
-        cls.llm = LLM(model_dir, tokenizer=model_dir, gpu_memory_utilization=0.3)
+        cls.tokenizer = AutoTokenizer.from_pretrained(model_save_dir)
+        cls.llm = LLM(model_save_dir, tokenizer=model_save_dir)
         
         # Load dataset
         data_save_dir = os.path.join(args.cache_dir, args.data_dir)
