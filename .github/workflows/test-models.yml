@@ -46,7 +46,7 @@ jobs:
       - name: Extract Model Name
         id: extract_model_name
         run: |
-          MODEL_ID="${{ github.event.inputs.model_id }}"
+          MODEL_ID="${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }}"
           MODEL_NAME=$(echo $MODEL_ID | rev | cut -d'/' -f 1 | rev)
           echo "MODEL_NAME=$MODEL_NAME" >> $GITHUB_ENV
 
@@ -59,7 +59,7 @@ jobs:
       - name: Run tests
         working-directory: ./tests
         run: |
-          python3 test_case.py --model_dir ${{ github.event.inputs.model_id || 'jan-hq/Jan-Llama3-0708' }} --data_dir ${{ github.event.inputs.dataset_id || 'jan-hq/instruction-speech-conversation-test' }} ${{ github.event.inputs.extra_args || '--mode audio --num_rows 5' }}
+          python3 test_case.py --model_dir ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }} --data_dir ${{ github.event.inputs.dataset_id || 'jan-hq/instruction-speech-conversation-test' }} ${{ github.event.inputs.extra_args || '--mode audio --num_rows 5' }}
 
       - name: Install benchmark dependencies
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
@@ -74,7 +74,7 @@ jobs:
         run: |
           cd lm-evaluation-harness
           chmod +x ./run_benchmark.sh
-          ./run_benchmark.sh ${{ github.event.inputs.model_id }}
+          ./run_benchmark.sh ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }}
 
       - name: Upload benchmark results
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
@@ -90,7 +90,7 @@ jobs:
         run: |
           cd AudioBench
           chmod +x eval_si.sh
-          ./eval_si.sh  ${{ github.event.inputs.model_id }}
+          ./eval_si.sh  ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }}
 
       - name: Eval on ASR Benchmark
         if: ${{ github.event.inputs.run_asr_benchmark == 'true' }}
@@ -99,7 +99,7 @@ jobs:
         run: |
           cd AudioBench
           chmod +x eval_asr.sh
-          ./eval_asr.sh  ${{ github.event.inputs.model_id }} 
+          ./eval_asr.sh  ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }} 
 
       - name: Upload audio results
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
