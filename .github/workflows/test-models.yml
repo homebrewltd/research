@@ -22,11 +22,17 @@ on:
         required: false
         default: true
         type: boolean
-      run audio_benchmark:
-        description: 'Run audio benchmark test'
+      run_si_benchmark:
+        description: 'Run SI benchmark'
         required: false
         default: true
         type: boolean
+      run_asr_benchmark:
+        description: 'Run ASR benchmark'
+        required: false
+        default: true
+        type: boolean
+
 
 jobs:
   run-test-and-benchmark:
@@ -69,3 +75,30 @@ jobs:
         with:
           name: benchmark-results
           path: ./lm-evaluation-harness/benchmark_results/**/*.json
+      
+      - name: Eval on Speech Instruction Benchmark
+        if: ${{ github.event.inputs.run_si_benchmark == 'true' }}
+        env:
+          AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+        run: |
+          cd AudioBench
+          pip3 install -r requirements.txt
+          chmod +x eval_si.sh
+          ./eval_si.sh  ${{ github.event.inputs.model_id }}
+
+      - name: Eval on ASR Benchmark
+        if: ${{ github.event.inputs.run_asr_benchmark == 'true' }}
+        env:
+          AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+        run: |
+          cd AudioBench
+          pip3 install -r requirements.txt
+          chmod +x eval_asr.sh
+          ./eval_asr.sh  ${{ github.event.inputs.model_id }} 
+
+      - name: Upload audio results
+        if: ${{ github.event.inputs.run_benchmark == 'true' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: audio-benchmark-results
+          path: ./AudioBench/benchmark_results/log/**/*.json
