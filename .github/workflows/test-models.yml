@@ -102,7 +102,7 @@ jobs:
           ./eval_asr.sh  ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }} 
 
       - name: Upload audio results
-        if: ${{ github.event.inputs.run_benchmark == 'true' }}
+        if: ${{ github.event.inputs.run_si_benchmark == 'true' || github.event.inputs.run_asr_benchmark == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: audio-benchmark-results
