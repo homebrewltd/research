@@ -9,7 +9,7 @@ on:
       model_id:
         description: 'Model ID on huggingface, for example: jan-hq/Jan-Llama3-0708'
         required: true
-        default: homebrewltd/llama3-s-2024-07-08
+        default: homebrewltd/llama3.1-s-instruct-v0.2
         type: string
       dataset_id:
         description: 'Dataset ID on huggingface, for example: jan-hq/instruction-speech-conversation-test'
@@ -45,6 +45,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+
+      - name: Extract Model Name
+        id: extract_model_name
+        run: |
+          MODEL_ID="${{ github.event.inputs.model_id }}"
+          MODEL_NAME=$(echo $MODEL_ID | rev | cut -d'/' -f 1 | rev)
+          echo "MODEL_NAME=$MODEL_NAME" >> $GITHUB_ENV
 
       - name: Install dependencies
         working-directory: ./tests
@@ -102,4 +109,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: audio-benchmark-results
-          path: ./AudioBench/benchmark_results/log/**/*.json
+          path: ./AudioBench/benchmark_results/log/${{ env.MODEL_NAME }}/*.json
