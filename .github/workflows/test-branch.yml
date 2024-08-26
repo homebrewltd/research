@@ -9,7 +9,7 @@ on:
       model_id:
         description: 'Model ID on huggingface, for example: jan-hq/Jan-Llama3-0708'
         required: true
-        default: homebrewltd/llama3-s-2024-07-08
+        default: homebrewltd/llama3.1-s-instruct-v0.2
         type: string
       dataset_id:
         description: 'Dataset ID on huggingface, for example: jan-hq/instruction-speech-conversation-test'
@@ -26,8 +26,13 @@ on:
         required: false
         default: true
         type: boolean
-      run audio_benchmark:
-        description: 'Run audio benchmark test'
+      run_si_benchmark:
+        description: 'Run SI benchmark'
+        required: false
+        default: true
+        type: boolean
+      run_asr_benchmark:
+        description: 'Run ASR benchmark'
         required: false
         default: true
         type: boolean
@@ -43,6 +48,13 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Extract Model Name
+        id: extract_model_name
+        run: |
+          MODEL_ID="${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }}"
+          MODEL_NAME=$(echo $MODEL_ID | rev | cut -d'/' -f 1 | rev)
+          echo "MODEL_NAME=$MODEL_NAME" >> $GITHUB_ENV
+
       - name: Install dependencies
         working-directory: ./tests
         run: |
@@ -52,7 +64,7 @@ jobs:
       - name: Run tests
         working-directory: ./tests
         run: |
-          python3 test_case.py --model_dir ${{ github.event.inputs.model_id || 'jan-hq/Jan-Llama3-0708' }} --data_dir ${{ github.event.inputs.dataset_id || 'jan-hq/instruction-speech-conversation-test' }} ${{ github.event.inputs.extra_args || '--mode audio --num_rows 5' }}
+          python3 test_case.py --model_dir ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }} --data_dir ${{ github.event.inputs.dataset_id || 'jan-hq/instruction-speech-conversation-test' }} ${{ github.event.inputs.extra_args || '--mode audio --num_rows 5' }}
       
       - name: Install benchmark dependencies
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
@@ -67,11 +79,36 @@ jobs:
         run: |
           cd lm-evaluation-harness
           chmod +x ./run_benchmark.sh
-          ./run_benchmark.sh ${{ github.event.inputs.model_id }}
+          ./run_benchmark.sh ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }}
 
       - name: Upload benchmark results
         if: ${{ github.event.inputs.run_benchmark == 'true' }}
         uses: actions/upload-artifact@v2
         with:
           name: benchmark-results
-          path: ./lm-evaluation-harness/benchmark_results/*.json
+          path: ./lm-evaluation-harness/benchmark_results/**/*.json
+
+      - name: Eval on Speech Instruction Benchmark
+        if: ${{ github.event.inputs.run_si_benchmark == 'true' }}
+        env:
+          AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+        run: |
+          cd AudioBench
+          chmod +x eval_si.sh
+          ./eval_si.sh  ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }}
+
+      - name: Eval on ASR Benchmark
+        if: ${{ github.event.inputs.run_asr_benchmark == 'true' }}
+        env:
+          AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+        run: |
+          cd AudioBench
+          chmod +x eval_asr.sh
+          ./eval_asr.sh  ${{ github.event.inputs.model_id || 'homebrewltd/llama3.1-s-instruct-v0.2' }} 
+
+      - name: Upload audio results
+        if: ${{ github.event.inputs.run_si_benchmark == 'true' || github.event.inputs.run_asr_benchmark == 'true' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: audio-benchmark-results
+          path: ./AudioBench/log/${{ env.MODEL_NAME }}/*.json
